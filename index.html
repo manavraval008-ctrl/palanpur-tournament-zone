@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Palanpur Tournament Zone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: linear-gradient(to right, #1f4037, #99f2c8);
+      text-align: center;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+    }
+
+    input, select, textarea {
+      width: 90%;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background: orange;
+      font-weight: bold;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    #adminBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: red;
+      color: white;
+    }
+
+    #adminPanel {
+      display: none;
+    }
+
+    .tables {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    table {
+      width: 100%;
+      background: white;
+      color: black;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    #message {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .terms {
+      text-align: left;
+      font-size: 13px;
+      margin-top: 15px;
+      background: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<button id="adminBtn" onclick="showAdmin()">Admin</button>
+
+<h1>🏏 Palanpur Tournament Zone</h1>
+
+<div class="container" id="formSection">
+
+<h3>📅 Match Date: <span id="matchDate">Not Set</span></h3>
+
+<form onsubmit="submitForm(event)">
+
+<p>What is your name?</p>
+<input id="name" required>
+
+<p>What is your parents name?</p>
+<input id="parent" required>
+
+<p>What is your birthday?</p>
+<input id="day" placeholder="DD" required>
+<input id="month" placeholder="MM" required>
+<input id="year" placeholder="YYYY" required>
+
+<p>What is your address?</p>
+<input id="address">
+
+<p>What is your mobile number?</p>
+<input id="mobile">
+
+<p>What is your email ID?</p>
+<input id="email" required>
+
+<p>Do you want to be part of the team?</p>
+<select id="team"></select>
+
+<button type="submit">Submit</button>
+
+<div id="message"></div>
+
+</form>
+
+<div class="terms" id="termsBox"></div>
+
+</div>
+
+<div class="container" id="adminPanel">
+
+<h2>Admin Login</h2>
+
+<input id="user" placeholder="Username">
+<input id="pass" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<div id="panel" style="display:none;">
+
+<h3>Set Match Date</h3>
+<input type="date" id="dateInput">
+<button onclick="saveDate()">Save Date</button>
+
+<h3>Edit Terms & Conditions</h3>
+<textarea id="termsInput" rows="6"></textarea>
+<button onclick="saveTerms()">Save Terms</button>
+
+<h3>Change Team Names</h3>
+
+<input id="teamAName" placeholder="Team A Name">
+<input id="teamBName" placeholder="Team B Name">
+
+<button onclick="saveTeams()">Save Team Names</button>
+
+<h3>Players Data</h3>
+
+<div class="tables">
+
+<div>
+<h4 id="teamATitle">Team A</h4>
+<table id="tableA" border="1"></table>
+</div>
+
+<div>
+<h4 id="teamBTitle">Team B</h4>
+<table id="tableB" border="1"></table>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+// ADMIN OPEN
+function showAdmin(){
+  document.getElementById("formSection").style.display = "none";
+  document.getElementById("adminPanel").style.display = "block";
+}
+
+// MATCH DATE
+function saveDate(){
+  let d = document.getElementById("dateInput").value;
+  localStorage.setItem("matchDate", d);
+  loadDate();
+}
+
+function loadDate(){
+  let d = localStorage.getItem("matchDate");
+  if(d){
+    document.getElementById("matchDate").innerText = d;
+  }
+}
+loadDate();
+
+// TERMS
+function loadTerms(){
+  let t = localStorage.getItem("terms");
+
+  if(!t){
+    t = `
+<ul>
+<li>All participants must provide accurate and genuine information.</li>
+<li>Fake name, wrong mobile number, or incorrect email will result in disqualification.</li>
+<li>₹500 fine will be charged for incorrect details.</li>
+<li>Players must be above 10 years.</li>
+<li>Player must be present on match date.</li>
+<li>Verification confirmation will be sent within 24 hours.</li>
+<li>Organizer can change rules anytime.</li>
+</ul>`;
+  }
+
+  document.getElementById("termsBox").innerHTML = t;
+}
+loadTerms();
+
+function saveTerms(){
+  let t = document.getElementById("termsInput").value;
+  localStorage.setItem("terms", t);
+  loadTerms();
+  alert("Terms Updated ✅");
+}
+
+// TEAM
+function loadTeams(){
+  let teams = JSON.parse(localStorage.getItem("teams")) || {A:"Team A", B:"Team B"};
+
+  document.getElementById("team").innerHTML = `
+    <option value="A">${teams.A}</option>
+    <option value="B">${teams.B}</option>
+  `;
+
+  document.getElementById("teamATitle").innerText = teams.A;
+  document.getElementById("teamBTitle").innerText = teams.B;
+}
+loadTeams();
+
+// SUBMIT FORM
+function submitForm(e){
+  e.preventDefault();
+
+  let msg = document.getElementById("message");
+
+  let age = 2026 - document.getElementById("year").value;
+
+  if(age < 10){
+    msg.innerHTML = "Age must be 10+ ❌";
+    return;
+  }
+
+  let data = {
+    name: document.getElementById("name").value,
+    parent: document.getElementById("parent").value,
+    age: age,
+    address: document.getElementById("address").value,
+    mobile: document.getElementById("mobile").value,
+    email: document.getElementById("email").value,
+    team: document.getElementById("team").value
+  };
+
+  let players = JSON.parse(localStorage.getItem("players")) || [];
+
+  players.push(data);
+
+  localStorage.setItem("players", JSON.stringify(players));
+
+  msg.innerHTML = "✅ Saved Successfully";
+}
+
+// LOGIN
+function login(){
+  if(user.value === "admin" && pass.value === "1234"){
+    document.getElementById("panel").style.display = "block";
+    loadTable();
+
+    let teams = JSON.parse(localStorage.getItem("teams")) || {A:"Team A", B:"Team B"};
+
+    document.getElementById("teamAName").value = teams.A;
+    document.getElementById("teamBName").value = teams.B;
+
+    document.getElementById("termsInput").value = localStorage.getItem("terms") || "";
+
+  } else {
+    alert("Wrong login ❌");
+  }
+}
+
+// TABLE
+function loadTable(){
+
+  let players = JSON.parse(localStorage.getItem("players")) || [];
+
+  let htmlA = `
+  <tr>
+    <th>Name</th>
+    <th>Parent</th>
+    <th>Age</th>
+    <th>Mobile</th>
+    <th>Email</th>
+    <th>Action</th>
+  </tr>`;
+
+  let htmlB = htmlA;
+
+  players.forEach((p,index)=>{
+
+    let row = `
+    <tr>
+      <td>${p.name}</td>
+      <td>${p.parent}</td>
+      <td>${p.age}</td>
+      <td>${p.mobile}</td>
+      <td>${p.email}</td>
+      <td><button onclick="deletePlayer(${index})">Cancel</button></td>
+    </tr>`;
+
+    if(p.team === "A"){
+      htmlA += row;
+    } else {
+      htmlB += row;
+    }
+
+  });
+
+  document.getElementById("tableA").innerHTML = htmlA;
+  document.getElementById("tableB").innerHTML = htmlB;
+}
+
+// DELETE
+function deletePlayer(index){
+  let players = JSON.parse(localStorage.getItem("players")) || [];
+  players.splice(index,1);
+  localStorage.setItem("players", JSON.stringify(players));
+  loadTable();
+}
+
+// SAVE TEAM
+function saveTeams(){
+  let data = {
+    A: document.getElementById("teamAName").value,
+    B: document.getElementById("teamBName").value
+  };
+
+  localStorage.setItem("teams", JSON.stringify(data));
+
+  alert("Updated ✅");
+
+  loadTeams();
+}
+
+</script>
+
+</body>
+</html>
